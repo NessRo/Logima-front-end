@@ -6,19 +6,25 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000
 export const api = axios.create({
   baseURL: API_BASE_URL,         // e.g. http://localhost:8000
   timeout: 15000,                // 15s
-  withCredentials: false,        // set true if you use cookies/session auth
+  withCredentials: true,        // set true if you use cookies/session auth
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",
   },
 });
 
+
+function getCookie(name) {
+    const m = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+  return m ? decodeURIComponent(m[2]) : null;
+}
+
+
 // ---- Request interceptor (attach auth, trace IDs, etc.) ----
 api.interceptors.request.use(
   (config) => {
-    // Example: attach a bearer token if you add auth later
-    // const token = localStorage.getItem("token");
-    // if (token) config.headers.Authorization = `Bearer ${token}`;
+     const csrf = getCookie("csrf_token");
+    if (csrf) config.headers["X-CSRF-Token"] = csrf;
     return config;
   },
   (error) => Promise.reject(error)
@@ -38,14 +44,28 @@ api.interceptors.response.use(
   }
 );
 
+
+// Auth
+export const authApi = {
+    register({ email, password }) { return api.post("/auth/register", { email, password }).then(r => r.data); },
+    login({ email, password })     { return api.post("/auth/login",    { email, password }).then(r => r.data); },
+    logout()                       { return api.post("/auth/logout").then(r => r.data); },
+    me()                          { return api.get("/auth/me").then(r => r.data); },
+};
+
+
+
+
+
 // ---- Domain-specific helpers (optional, recommended) ----
 export const projectsApi = {
   create(payload) {
     // backend: prefix="/projects", route="/api/create" -> /projects/api/create
     return api.post("/projects/api/create", payload).then((r) => r.data);
   },
-  list() {
-    return api.get("/projects/api/list").then((r) => r.data); // adjust if you have this route
+  list(status) {
+    const qs = status ? `?status=${encodeURIComponent(status)}` : "";
+    return api.get(`/projects/api/list${qs}`).then(r => r.data);
   },
   update(id, payload) {
     return api.patch(`/projects/api/${id}`, payload).then(r => r.data);

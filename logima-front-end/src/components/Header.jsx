@@ -1,8 +1,22 @@
 import { useState } from 'react';
-import { ArrowRight, Menu, X, Zap } from 'lucide-react';
+import { ArrowRight, Menu, X, Zap, LogOut  } from 'lucide-react';
+import { authApi } from "@/lib/api";
 
 export default function HomePage() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  async function handleLogout() {
+    setIsLoggingOut(true);
+    try {
+      await authApi.logout(); // server clears cookies
+    } catch (_) {
+      /* ignore */
+    } finally {
+      setIsLoggingOut(false);
+      window.location.href = "/login"; // or use navigate("/login")
+    }
+  }
 
   return (
     <>
@@ -62,6 +76,24 @@ export default function HomePage() {
             </a>
           ))}
         </nav>
+        {/* Logout pinned at the very bottom */}
+        <div className="absolute bottom-0 inset-x-0 p-4 border-t border-white/10 bg-[#0f0f10]">
+          <button
+            type="button"
+            onClick={handleLogout}
+            disabled={isLoggingOut}
+            className="w-full flex items-center justify-center gap-2 bg-gray-800 hover:bg-gray-700 text-gray-100 font-medium py-2.5 px-4 rounded-lg transition disabled:opacity-70 disabled:cursor-not-allowed"
+          >
+            {isLoggingOut ? (
+              <span className="inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <>
+                <LogOut size={18} />
+                Logout
+              </>
+            )}
+          </button>
+        </div>
       </aside>
     </>
   );
