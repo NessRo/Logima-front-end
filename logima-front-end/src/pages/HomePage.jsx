@@ -4,6 +4,7 @@ import {
 } from 'lucide-react';
 import { useState, useEffect, useCallback} from 'react';
 import { projectsApi } from "@/lib/api";
+import { formatUtc } from '@/utils/dates';
 
 
 export default function HomePage() {
@@ -58,6 +59,7 @@ export default function HomePage() {
     const creator = 'testing'
 
     if (!name) return setError("Project name cannot be empty");
+    if (!description) return setError("Project description cannot be empty");
 
     setIsSubmitting(true);
     setError("");
@@ -132,13 +134,16 @@ export default function HomePage() {
               {projects.map((project) => (
                 <div
                   key={project.id ?? project.name}
-                  className="group relative w-[60%] max-w-2xl bg-[#181818] border border-white/10 rounded-xl p-6 flex flex-col gap-4 shadow-lg hover:shadow-violet-500/20 hover:border-violet-500 transition-colors"
+                  className="group relative w-[80%] max-w-6xl bg-[#181818] border border-white/10 rounded-xl p-6 flex flex-col gap-4 shadow-lg hover:shadow-violet-500/20 hover:border-violet-500 transition-colors"
                 >
                   <h3 className="text-white text-lg font-semibold truncate pr-8">
                     {project.name}
                   </h3>
                   <p className="text-sm text-gray-400">
-                    Created: {project.created_at ?? project.created ?? "—"}
+                    {project.description}
+                  </p>
+                  <p className="text-sm text-gray-400">
+                    Created: {formatUtc(project.created_at ?? project.created)}
                   </p>
                   <span className="inline-block px-2 py-0.5 text-xs rounded bg-violet-600/20 text-violet-300 capitalize w-max">
                     {project.status || "unknown"}
@@ -195,7 +200,7 @@ export default function HomePage() {
             <textarea
               value={descriptionValue}
               onChange={(e) => setProjectDescription(e.target.value)}
-              placeholder="Enter a short description or hypothesis to validate."
+              placeholder="IMPORTANT! Enter a short description or hypothesis to validate. This description will be used by the LLM to validate against."
               className="w-full min-h-[120px] p-3 rounded-md bg-neutral-900 text-white placeholder:text-gray-400 border border-transparent outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 resize-y"
             />
 
