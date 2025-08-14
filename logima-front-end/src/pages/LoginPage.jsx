@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { authApi } from "@/lib/api";
+import { Logo } from '@/components/logo'
+
 
 const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:8000";
 
@@ -31,8 +33,8 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen w-full bg-[#0f0f10] flex items-center justify-center px-4">
       <div className="w-full max-w-md rounded-2xl border border-white/10 bg-[#141414]/90 shadow-2xl backdrop-blur p-8">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-violet-500 via-fuchsia-500 to-amber-400" />
+        <div className="flex flex-col items-start gap-2 mb-6">
+          <Logo className="h-7 w-auto text-white" />
           <h1 className="text-white text-2xl font-semibold">
             {mode === "login" ? "Log in" : "Create your account"}
           </h1>
