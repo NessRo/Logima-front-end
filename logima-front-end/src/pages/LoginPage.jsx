@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { authApi } from "@/lib/api";
 
-const API_BASE = import.meta?.env?.VITE_API_BASE ?? "";
+const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:8000";
 
 export default function LoginPage() {
   const [mode, setMode] = useState("login");
@@ -20,89 +20,112 @@ export default function LoginPage() {
     try {
       if (mode === "register") await authApi.register({ email: eTrim, password });
       await authApi.login({ email: eTrim, password }); // sets cookies
-      window.location.href = "/"; // or navigate("/")
+      window.location.href = "/";
     } catch (err) {
-      setError(err.message || "Authentication failed.");
+      setError((err && err.message) || "Authentication failed.");
     } finally {
       setIsSubmitting(false);
     }
   }
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-[#0f0f10]">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-[#181818] w-11/12 max-w-md p-8 rounded-xl border border-white/10 flex flex-col gap-6"
-      >
-        <h1 className="text-white text-2xl font-semibold">
-          {mode === "login" ? "Sign in" : "Create account"}
-        </h1>
+    <div className="min-h-screen w-full bg-[#0f0f10] flex items-center justify-center px-4">
+      <div className="w-full max-w-md rounded-2xl border border-white/10 bg-[#141414]/90 shadow-2xl backdrop-blur p-8">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-violet-500 via-fuchsia-500 to-amber-400" />
+          <h1 className="text-white text-2xl font-semibold">
+            {mode === "login" ? "Log in" : "Create your account"}
+          </h1>
+        </div>
 
-        {/* Email/password block */}
-        <input
-          type="email"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          placeholder="Email"
-          autoComplete="email"
-          className="w-full p-3 rounded-md bg-[#222] text-white placeholder-gray-400 outline-none border border-transparent focus:border-violet-500"
-        />
-        <input
-          type="password"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          placeholder="Password (min 8 chars)"
-          autoComplete={mode === "login" ? "current-password" : "new-password"}
-          className="w-full p-3 rounded-md bg-[#222] text-white placeholder-gray-400 outline-none border border-transparent focus:border-violet-500"
-        />
-
-        {!!error && <p className="text-red-400 text-sm">{error}</p>}
-
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="relative flex items-center justify-center bg-yellow-300 hover:bg-yellow-200 text-black font-semibold py-2.5 px-5 rounded-lg disabled:opacity-70 disabled:cursor-not-allowed transition min-w-[140px] overflow-hidden"
-        >
-          <span
-            className={`absolute inset-0 flex items-center justify-center transition-opacity duration-200 ${
-              isSubmitting ? "opacity-100" : "opacity-0 pointer-events-none"
-            }`}
+        <div className="space-y-3">
+          <a
+            href={`${API_BASE}/auth/google/start`}
+            className="w-full inline-flex items-center justify-center gap-3 rounded-lg border border-white/10 bg-[#1b1b1b] hover:bg-[#202020] text-white py-2.5 transition"
           >
-            <span className="inline-block w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
-          </span>
-          <span className={`transition-opacity duration-200 ${isSubmitting ? "opacity-0" : "opacity-100"}`}>
-            {mode === "login" ? "Sign in" : "Register"}
-          </span>
-        </button>
+            <svg aria-hidden="true" viewBox="0 0 48 48" className="w-5 h-5">
+              <path d="M44.5 20H24v8.5h11.8C34.9 32.9 30.2 36 24 36c-6.6 0-12.2-4.5-14.1-10.5S9.3 10.5 16 10.5c3.2 0 6.1 1.1 8.3 3L30 8.1C26.8 5.4 21.7 4 16 4 7.9 4 1.2 9.6 0 17.2S4.6 32 16 32c9.1 0 16-6.1 16-16 0-1.1-.1-2.2-.3-3.2H24V20h20.5z" />
+            </svg>
+            <span>Continue with Google</span>
+          </a>
+        </div>
 
-        {/* Divider */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 my-6">
           <div className="h-px flex-1 bg-white/10" />
-          <span className="text-xs text-gray-400">or</span>
+          <span className="text-xs text-gray-400">OR</span>
           <div className="h-px flex-1 bg-white/10" />
         </div>
 
-        {/* Google sign-in */}
-        <a
-          href="http://localhost:8000/auth/google/start"
-          className="flex items-center justify-center gap-3 w-full py-2.5 rounded-lg border border-white/10 bg-[#202020] hover:bg-[#242424] text-white transition"
-        >
-          Continue with Google
-        </a>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-1.5">
+            <label htmlFor="email" className="text-gray-300 text-sm">Email</label>
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
+              className="w-full rounded-lg bg-[#1b1b1b] text-white placeholder-gray-400 outline-none border border-white/10 focus:border-violet-500 px-3 py-2.5 transition"
+              placeholder="you@company.com"
+            />
+          </div>
 
-        <p className="text-sm text-gray-400">
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <label htmlFor="password" className="text-gray-300 text-sm">Password</label>
+              <button
+                type="button"
+                className="text-xs text-gray-400 hover:text-gray-300 underline underline-offset-2"
+                onClick={() => alert("TODO: forgot password")}
+              >
+                Forgot password?
+              </button>
+            </div>
+            <input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete={mode === "login" ? "current-password" : "new-password"}
+              className="w-full rounded-lg bg-[#1b1b1b] text-white placeholder-gray-400 outline-none border border-white/10 focus:border-violet-500 px-3 py-2.5 transition"
+              placeholder="••••••••"
+            />
+          </div>
+
+          {error && (
+            <div className="rounded-lg border border-red-500/30 bg-red-500/10 text-red-300 text-sm px-3 py-2">
+              {error}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="relative w-full inline-flex items-center justify-center rounded-lg bg-yellow-300 hover:bg-yellow-200 text-black font-semibold py-2.5 transition disabled:opacity-70 disabled:cursor-not-allowed"
+          >
+            <span
+              className={`absolute inset-0 flex items-center justify-center transition-opacity ${
+                isSubmitting ? "opacity-100" : "opacity-0 pointer-events-none"
+              }`}
+            >
+              <span className="inline-block w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
+            </span>
+            <span className={`${isSubmitting ? "opacity-0" : "opacity-100"} transition-opacity`}>
+              {mode === "login" ? "Log in" : "Create account"}
+            </span>
+          </button>
+        </form>
+
+        <p className="mt-6 text-sm text-gray-400">
           {mode === "login" ? (
             <>
               Don’t have an account?{" "}
               <button
                 type="button"
-                onClick={() => {
-                  setMode("register");
-                  setError("");
-                }}
+                onClick={() => { setMode("register"); setError(""); }}
                 className="text-violet-300 hover:text-violet-200 underline"
               >
-                Create one
+                Create your account
               </button>
             </>
           ) : (
@@ -110,18 +133,15 @@ export default function LoginPage() {
               Already have an account?{" "}
               <button
                 type="button"
-                onClick={() => {
-                  setMode("login");
-                  setError("");
-                }}
+                onClick={() => { setMode("login"); setError(""); }}
                 className="text-violet-300 hover:text-violet-200 underline"
               >
-                Sign in
+                Log in
               </button>
             </>
           )}
         </p>
-      </form>
+      </div>
     </div>
   );
 }
