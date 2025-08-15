@@ -5,6 +5,7 @@ import {
 import { useState, useEffect, useCallback} from 'react';
 import { projectsApi } from "@/lib/api";
 import { formatUtc } from '@/utils/dates';
+import { useAuthStore } from '@/stores/auth';
 
 
 export default function HomePage() {
@@ -110,7 +111,9 @@ export default function HomePage() {
 
 
       {/* Main content */}
+      
       <main className="relative w-full min-h-screen flex flex-col items-center pt-24 px-4 gap-8 overflow-y-auto">
+        {console.log(useAuthStore((s) => s.user))}
         {isLoadingProjects ? (
           <div className="mt-20 text-gray-300">Loading projects…</div>
         ) : projectsError ? (

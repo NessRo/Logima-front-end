@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { authApi } from "@/lib/api";
-import { Logo } from '@/components/logo'
+import { Logo } from '@/components/logo';
+import { useAuthStore } from "@/stores/auth";
 
 
 const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:8000";
@@ -12,6 +13,8 @@ export default function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
 
+  const loginSuccess = useAuthStore((s) => s.loginSuccess);
+
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
@@ -22,6 +25,7 @@ export default function LoginPage() {
     try {
       if (mode === "register") await authApi.register({ email: eTrim, password });
       await authApi.login({ email: eTrim, password }); // sets cookies
+      loginSuccess(eTrim);  
       window.location.href = "/";
     } catch (err) {
       setError((err && err.message) || "Authentication failed.");

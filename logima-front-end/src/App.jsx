@@ -2,8 +2,10 @@ import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-route
 import { useEffect, useState } from "react";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
+import AuthCallback from "./pages/AuthCallback";
 import { authApi } from "@/lib/api";
 import MainLayout from "@/layouts/MainLayout"; 
+import { useAuthStore } from "@/stores/auth";
 
 function RequireAuth({ children }) {
   const navigate = useNavigate();
@@ -24,13 +26,18 @@ function RequireAuth({ children }) {
 
 
 export default function App() {
+
+  const hydrateFromServer = useAuthStore((s) => s.hydrateFromServer);
+  useEffect(() => { hydrateFromServer(); }, [hydrateFromServer]);
   return (
     <BrowserRouter>
       <Routes>
         {/* Public */}
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/auth/callback" element={<AuthCallback />} /> 
 
         {/* Private, wrapped by MainLayout */}
+        
         <Route element={<RequireAuth><MainLayout /></RequireAuth>}>
           <Route index element={<HomePage />} />           {/* "/" */}
           {/* add more authenticated pages here */}
