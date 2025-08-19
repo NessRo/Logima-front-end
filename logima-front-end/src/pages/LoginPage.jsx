@@ -39,7 +39,7 @@ export default function LoginPage() {
     <div className="min-h-screen w-full bg-[#0f0f10] flex items-center justify-center px-4">
       <div className="w-full max-w-md rounded-2xl border border-white/10 bg-[#141414]/90 shadow-2xl backdrop-blur p-8">
         <div className="flex flex-col items-start gap-2 mb-6">
-          <Logo className="h-7 w-auto text-white" />
+          <Logo className="text-white/90 hover:text-white transition-colors" />
           <h1 className="text-white text-2xl font-semibold">
             {mode === "login" ? "Log in" : "Create your account"}
           </h1>
