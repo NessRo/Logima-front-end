@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-route
 import { useEffect, useState } from "react";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
+import ProjectPage from "./pages/ProjectPage";
 import AuthCallback from "./pages/AuthCallback";
 import { authApi } from "@/lib/api";
 import MainLayout from "@/layouts/MainLayout"; 
@@ -40,6 +41,7 @@ export default function App() {
         
         <Route element={<RequireAuth><MainLayout /></RequireAuth>}>
           <Route index element={<HomePage />} />           {/* "/" */}
+          <Route path="projects/:projectId" element={<ProjectPage />} />
           {/* add more authenticated pages here */}
           {/* <Route path="projects" element={<ProjectsPage />} /> */}
         </Route>
