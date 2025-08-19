@@ -6,6 +6,7 @@ import { useState, useEffect, useCallback} from 'react';
 import { projectsApi } from "@/lib/api";
 import { formatUtc } from '@/utils/dates';
 import { useAuthStore } from '@/stores/auth';
+import { Link } from "react-router-dom";
 
 
 export default function HomePage() {
@@ -111,7 +112,6 @@ export default function HomePage() {
       {/* Main content */}
       
       <main className="relative w-full min-h-screen flex flex-col items-center pt-24 px-4 gap-8 overflow-y-auto">
-        {console.log(useAuthStore((s) => s.user))}
         {isLoadingProjects ? (
           <div className="mt-20 text-gray-300">Loading projects…</div>
         ) : projectsError ? (
@@ -132,42 +132,60 @@ export default function HomePage() {
         ) : (
           <>
             <div className="flex flex-col items-center w-full gap-8">
-              {projects.map((project) => (
-                <div
-                  key={project.id ?? project.name}
-                  className="group relative w-[80%] max-w-6xl bg-[#181818] border border-white/10 rounded-xl p-6 flex flex-col gap-4 shadow-lg hover:shadow-violet-500/20 hover:border-violet-500 transition-colors"
-                >
-                  <h3 className="text-white text-lg font-semibold truncate pr-8">
-                    {project.name}
-                  </h3>
-                  <p className="text-sm text-gray-400">
-                    {project.description}
-                  </p>
-                  <p className="text-sm text-gray-400">
-                    Created: {formatUtc(project.created_at ?? project.created)}
-                  </p>
-                  <span className="inline-block px-2 py-0.5 text-xs rounded bg-violet-600/20 text-violet-300 capitalize w-max">
-                    {project.status || "unknown"}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => handleSoftDelete(project.id)}
-                    disabled={deletingId === project.id}
-                    title="Archive project"
-                    aria-label="Archive project"
-                    className="absolute top-6 right-6 p-2 rounded-md text-violet-400 opacity-80
-                              hover:opacity-100 hover:text-red-400 hover:bg-red-500/10
-                              focus:outline-none focus:ring-2 focus:ring-red-400/40
-                              disabled:opacity-60 disabled:cursor-not-allowed transition"
+              {projects.map((project) => {
+                const id = project.id ?? project.name; // fallback if no id yet
+                return (
+                  <div
+                    key={id}
+                    className="group relative w-[80%] max-w-6xl bg-[#181818] border border-white/10 rounded-xl p-6 flex flex-col gap-4 shadow-lg hover:shadow-violet-500/20 hover:border-violet-500 transition-colors"
                   >
-                    {deletingId === project.id ? (
-                      <span className="inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                    ) : (
-                      <Trash2 size={18} />
-                    )}
-                  </button>
-                </div>
-              ))}
+                    <h3 className="text-white text-lg font-semibold truncate pr-8">{project.name}</h3>
+                    <p className="text-sm text-gray-400">{project.description}</p>
+                    <p className="text-sm text-gray-400">
+                      Created: {formatUtc(project.created_at ?? project.created)}
+                    </p>
+                    <span className="inline-block px-2 py-0.5 text-xs rounded bg-violet-600/20 text-violet-300 capitalize w-max">
+                      {project.status || "unknown"}
+                    </span>
+
+                    {/* Trash (top-right) */}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSoftDelete(project.id);
+                      }}
+                      disabled={deletingId === project.id}
+                      title="Archive project"
+                      aria-label="Archive project"
+                      className="absolute top-6 right-6 z-10 p-2 rounded-md text-violet-400 opacity-80
+                                hover:opacity-100 hover:text-red-400 hover:bg-red-500/10
+                                focus:outline-none focus:ring-2 focus:ring-red-400/40
+                                disabled:opacity-60 disabled:cursor-not-allowed transition"
+                    >
+                      {deletingId === project.id ? (
+                        <span className="inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <Trash2 size={18} />
+                      )}
+                    </button>
+
+                    {/* Arrow (bottom-right) — green hover */}
+                    <Link
+                      to={`/projects/${encodeURIComponent(id)}`}
+                      onClick={(e) => e.stopPropagation()}
+                      title="Open project"
+                      aria-label={`Open project ${project.name}`}
+                      className="absolute bottom-6 right-6 z-10 p-2 rounded-md text-violet-400 opacity-80
+                                hover:opacity-100 hover:text-emerald-400 hover:bg-emerald-500/10
+                                focus:outline-none focus:ring-2 focus:ring-emerald-400/40
+                                transition"
+                    >
+                      <ArrowRight size={18} />
+                    </Link>
+                  </div>
+                );
+              })}
             </div>
 
             {/* Floating add-project button */}

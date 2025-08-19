@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ArrowRight, Menu, X, Zap, LogOut  } from 'lucide-react';
 import { authApi } from "@/lib/api";
+import { Logo } from '@/components/logo';
 
 export default function HomePage() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -36,8 +37,7 @@ export default function HomePage() {
 
         {/* Logo */}
         <div className="flex items-center gap-2 select-none">
-          <Zap size={22} className="text-violet-400" />
-          <span className="text-white font-semibold">Logima</span>
+          <Logo className="text-white/90 hover:text-white transition-colors" />
         </div>
 
         {/* Empty spacer to balance flex */}
