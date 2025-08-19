@@ -57,7 +57,6 @@ export default function HomePage() {
 
     const name = projectName.trim();
     const description = descriptionValue.trim();
-    const creator = 'testing'
 
     if (!name) return setError("Project name cannot be empty");
     if (!description) return setError("Project description cannot be empty");
@@ -70,7 +69,6 @@ export default function HomePage() {
         name,
         description,
         status: "active",
-        created_by: creator,
       });
 
       // reset & close

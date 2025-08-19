@@ -2,6 +2,7 @@ import { useState } from "react";
 import { authApi } from "@/lib/api";
 import { Logo } from '@/components/logo';
 import { useAuthStore } from "@/stores/auth";
+import { FcGoogle } from "react-icons/fc";
 
 
 const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:8000";
@@ -49,9 +50,7 @@ export default function LoginPage() {
             href={`${API_BASE}/auth/google/start`}
             className="w-full inline-flex items-center justify-center gap-3 rounded-lg border border-white/10 bg-[#1b1b1b] hover:bg-[#202020] text-white py-2.5 transition"
           >
-            <svg aria-hidden="true" viewBox="0 0 48 48" className="w-5 h-5">
-              <path d="M44.5 20H24v8.5h11.8C34.9 32.9 30.2 36 24 36c-6.6 0-12.2-4.5-14.1-10.5S9.3 10.5 16 10.5c3.2 0 6.1 1.1 8.3 3L30 8.1C26.8 5.4 21.7 4 16 4 7.9 4 1.2 9.6 0 17.2S4.6 32 16 32c9.1 0 16-6.1 16-16 0-1.1-.1-2.2-.3-3.2H24V20h20.5z" />
-            </svg>
+            <FcGoogle className="w-5 h-5" />
             <span>Continue with Google</span>
           </a>
         </div>
