@@ -73,5 +73,8 @@ export const projectsApi = {
   softDelete(id) {
     return api.patch(`/projects/api/${id}`, { status: "inactive" }).then(r => r.data);
   },
+  get(id, config={}) {
+    return api.get(`/projects/api/${id}`, config).then( r => r.data);
+  },
   // add more: get(id), update(id, data), remove(id)...
 };
