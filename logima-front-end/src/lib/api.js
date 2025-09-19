@@ -76,5 +76,11 @@ export const projectsApi = {
   get(id, config={}) {
     return api.get(`/projects/api/${id}`, config).then( r => r.data);
   },
+  aiRefreshOutcome(id, { description } = {}, config = {}) {
+    // If no override provided, send no body so backend uses current project.description
+    const body = description === undefined ? undefined : { description };
+    return api.post(`/projects/api/${id}/ai-refresh`, body, config).then(r => r.data);
+  },
+  
   // add more: get(id), update(id, data), remove(id)...
 };
