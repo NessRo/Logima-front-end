@@ -1,7 +1,7 @@
 import { useParams } from "react-router-dom";
 import { useEffect, useMemo, useState, useCallback, Suspense, lazy } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { projectsApi } from "@/lib/api";
+import { projectsApi, uploadsApi } from "@/lib/api";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { UploadCloud } from "lucide-react";
 import UploadDialog from "@/components/ui/upload-dialog";
@@ -33,10 +33,28 @@ export default function ProjectPage() {
   const [uploadOpen, setUploadOpen] = useState(false);
 
   const handleUploadSubmit = useCallback(async (files) => {
-    // TODO: replace with your real API call
-    // await projectsApi.uploadDocuments(projectId, files)
-    await new Promise((r) => setTimeout(r, 600));
-  }, [projectId]);
+     const list = Array.from(files || []);
+  if (!list.length) return [];
+
+  try {
+    // Upload in parallel. For huge files you can switch to sequential (see below).
+    const results = await Promise.all(
+      list.map((file) =>
+        uploadsApi.uploadFile({
+          file,
+          projectId,         // optional: include if you want it in the S3 key path
+          // userId,          // optional: include if you want it in the S3 key path
+        })
+      )
+    );
+
+    // results: [{ key, publicUrl }]
+    return results;
+  } catch (err) {
+    console.error("Upload failed:", err);
+    throw err; // let caller toast/display
+  }
+}, [projectId]);
 
   useEffect(() => {
     const ac = new AbortController();
@@ -190,8 +208,8 @@ export default function ProjectPage() {
         onOpenChange={setUploadOpen}
         onSubmit={handleUploadSubmit}
         title="Upload project artifacts"
-        description="Attach customer-discovery notes, transcripts, screenshots, etc."
-        accept=".pdf,.doc,.docx,.txt,.csv,.png,.jpg,.jpeg"
+        description="Attach customer-discovery notes, audio, etc."
+        accept="text(doc,docx,pages,txt), audio(mp3,m4a,aac,wave,flac,ogg,webm)"
       />
     </main>
   );

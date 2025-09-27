@@ -84,3 +84,120 @@ export const projectsApi = {
   
   // add more: get(id), update(id, data), remove(id)...
 };
+
+// ---- Uploads (S3 Presigned POST) ----
+
+// Minimal MIME fallbacks when file.type is empty/odd (e.g. .pages, .doc)
+const MIME_FALLBACKS = {
+  doc:  "application/msword",
+  docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  pages: "application/vnd.apple.pages",
+  txt:  "text/plain",
+  md:   "text/markdown",
+  csv:  "text/csv",
+  mp3:  "audio/mpeg",
+  m4a:  "audio/mp4",
+  aac:  "audio/aac",
+  wav:  "audio/wav",
+  flac: "audio/flac",
+  ogg:  "audio/ogg",
+  webm: "audio/webm",
+  mid:  "audio/midi",
+  midi: "audio/midi",
+  aif:  "audio/aiff",
+  aiff: "audio/aiff",
+};
+function mimeFromFilename(name, fallback = "application/octet-stream") {
+  const ext = (name.split(".").pop() || "").toLowerCase();
+  return MIME_FALLBACKS[ext] || fallback;
+}
+
+// Internal: POST the FormData to S3.
+// Uses XHR if onProgress is provided; otherwise uses fetch.
+async function postFormToS3({ url, formData, onProgress }) {
+  if (typeof onProgress === "function") {
+    // XHR path for progress
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", url, true);
+      xhr.upload.onprogress = (evt) => {
+        if (evt.lengthComputable) {
+          const pct = Math.round((evt.loaded / evt.total) * 100);
+          onProgress({ loaded: evt.loaded, total: evt.total, pct });
+        }
+      };
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) resolve();
+        else reject(new Error(`S3 upload failed (${xhr.status})`));
+      };
+      xhr.onerror = () => reject(new Error("Network error uploading to S3"));
+      xhr.send(formData);
+    });
+  } else {
+    // fetch path (no progress)
+    const res = await fetch(url, { method: "POST", body: formData });
+    if (!res.ok) throw new Error(`S3 upload failed (${res.status})`);
+  }
+}
+
+export const uploadsApi = {
+  /**
+   * Ask backend for a presigned POST.
+   * Returns { url, fields, key, public_url }
+   */
+  async presignPost({ filename, contentType, projectId, userId, maxBytes } = {}) {
+    if (!filename) throw new Error("filename is required");
+    const params = {
+      filename,
+      content_type: contentType,
+      project_id: projectId,
+      user_id: userId,
+    };
+    if (maxBytes) params.max_bytes = maxBytes;
+
+    const r = await api.post("/uploads/presign-post", null, { params });
+    return r.data.upload;
+  },
+
+  /**
+   * End-to-end upload helper.
+   * - infers a reasonable contentType if file.type is empty
+   * - calls presign endpoint
+   * - posts file to S3 (with optional progress)
+   * Returns { key, publicUrl }
+   */
+  async uploadFile({ file, projectId, userId, onProgress, maxBytes } = {}) {
+    if (!file) throw new Error("file is required");
+    const contentType = file.type || mimeFromFilename(file.name);
+
+    // 1) get presigned POST
+    const { url, fields, key, public_url } = await this.presignPost({
+      filename: file.name,
+      contentType,
+      projectId,
+      userId,
+      maxBytes,
+    });
+
+    // 2) build form data (IMPORTANT: do NOT set Content-Type header manually)
+    const form = new FormData();
+    Object.entries(fields).forEach(([k, v]) => form.append(k, v));
+    form.append("file", file);
+
+    // 3) send to S3
+    await postFormToS3({ url, formData: form, onProgress });
+
+    // 4) done
+    return { key, publicUrl: public_url };
+  },
+
+  /**
+   * Lower-level primitive if you already have { url, fields } and just need to send the file.
+   */
+  async postToS3({ url, fields, file, onProgress }) {
+    const form = new FormData();
+    Object.entries(fields).forEach(([k, v]) => form.append(k, v));
+    form.append("file", file);
+    await postFormToS3({ url, formData: form, onProgress });
+  },
+};
