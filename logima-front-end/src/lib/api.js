@@ -140,60 +140,77 @@ async function postFormToS3({ url, formData, onProgress }) {
   }
 }
 
+// --- confirm helpers ---
+async function confirmOnce(key) {
+  const r = await api.post("/uploads/confirm", null, { params: { key } });
+  return r.data; // { ok, key, size_bytes, etag, status }
+}
+
+async function confirmWithRetry(key, tries = 3, delayMs = 300) {
+  let lastErr;
+  for (let i = 0; i < tries; i++) {
+    try {
+      return await confirmOnce(key);
+    } catch (err) {
+      lastErr = err;
+      // brief backoff in case S3 HEAD isn't visible yet
+      await new Promise((r) => setTimeout(r, delayMs * (i + 1)));
+    }
+  }
+  throw lastErr;
+}
+
 export const uploadsApi = {
-  /**
-   * Ask backend for a presigned POST.
-   * Returns { url, fields, key, public_url }
-   */
   async presignPost({ filename, contentType, projectId, userId, maxBytes } = {}) {
     if (!filename) throw new Error("filename is required");
-    const params = {
-      filename,
-      content_type: contentType,
-      project_id: projectId,
-      user_id: userId,
-    };
+    const params = { filename, content_type: contentType, project_id: projectId, user_id: userId };
     if (maxBytes) params.max_bytes = maxBytes;
-
     const r = await api.post("/uploads/presign-post", null, { params });
-    return r.data.upload;
+    return r.data.upload; // { url, fields, key, public_url }
   },
 
-  /**
-   * End-to-end upload helper.
-   * - infers a reasonable contentType if file.type is empty
-   * - calls presign endpoint
-   * - posts file to S3 (with optional progress)
-   * Returns { key, publicUrl }
-   */
-  async uploadFile({ file, projectId, userId, onProgress, maxBytes } = {}) {
+  async confirm(key) {
+    return confirmOnce(key);
+  },
+
+  async uploadFile({ file, projectId, userId, onProgress, maxBytes, autoConfirm = true } = {}) {
     if (!file) throw new Error("file is required");
     const contentType = file.type || mimeFromFilename(file.name);
 
-    // 1) get presigned POST
+    // 1) presign
     const { url, fields, key, public_url } = await this.presignPost({
-      filename: file.name,
-      contentType,
-      projectId,
-      userId,
-      maxBytes,
+      filename: file.name, contentType, projectId, userId, maxBytes,
     });
 
-    // 2) build form data (IMPORTANT: do NOT set Content-Type header manually)
+    // 2) send to S3
     const form = new FormData();
     Object.entries(fields).forEach(([k, v]) => form.append(k, v));
     form.append("file", file);
-
-    // 3) send to S3
     await postFormToS3({ url, formData: form, onProgress });
 
+    // 3) confirm to backend (idempotent; retry a bit for S3 consistency)
+    let confirm = null;
+    if (autoConfirm) {
+      try {
+        confirm = await confirmWithRetry(key);
+      } catch (e) {
+        // optional: surface a toast; you still have the key and can retry confirm later
+        console.warn("Confirm failed, will need manual retry:", e?.message || e);
+      }
+    }
+
     // 4) done
-    return { key, publicUrl: public_url };
+    return {
+      key,
+      publicUrl: public_url,
+      // extras from confirm if available:
+      status: confirm?.status,
+      etag: confirm?.etag,
+      sizeBytes: confirm?.size_bytes,
+      confirmed: !!confirm?.ok,
+    };
   },
 
-  /**
-   * Lower-level primitive if you already have { url, fields } and just need to send the file.
-   */
   async postToS3({ url, fields, file, onProgress }) {
     const form = new FormData();
     Object.entries(fields).forEach(([k, v]) => form.append(k, v));
