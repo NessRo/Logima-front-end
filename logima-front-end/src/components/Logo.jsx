@@ -1,4 +1,4 @@
-import Logima from '@/assets/logima-wordmark-mono.svg?react'
+import Logima from '@/assets/Aletro_logo.svg?react'
 
 export function Logo({ className = '' }) {
   return (

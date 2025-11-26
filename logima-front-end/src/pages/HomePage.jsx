@@ -111,89 +111,172 @@ export default function HomePage() {
 
       {/* Main content */}
       
-      <main className="relative w-full min-h-screen flex flex-col items-center pt-24 px-4 gap-8 overflow-y-auto">
+      <main
+        className="
+          relative w-full min-h-[100dvh]
+          flex flex-col items-center
+          pt-14 px-4 pb-16
+          bg-gradient-to-b from-zinc-950 to-zinc-900
+          text-white
+        "
+      >
         {isLoadingProjects ? (
-          <div className="mt-20 text-gray-300">Loading projects…</div>
+          <div className="mt-32 text-zinc-300">Loading projects…</div>
         ) : projectsError ? (
-          <div className="mt-20 text-red-400">{projectsError}</div>
+          <div className="mt-32 text-red-400">{projectsError}</div>
         ) : !hasProjects ? (
           /* EMPTY STATE */
-          <div className="relative w-full h-[70vh] flex flex-col justify-center items-center gap-6">
-            <p className="text-white text-lg md:text-2xl text-center">
-              Add your first new project
-            </p>
-            <button
-              className="flex items-center gap-2 bg-yellow-300 hover:bg-yellow-200 text-black font-semibold py-3 px-8 rounded-lg shadow-lg transition-colors"
-              onClick={() => setModalOpen(true)}
+          <div className="relative w-full h-[70vh] flex flex-col justify-center items-center">
+            <div
+              className="
+                w-[min(480px,100%)]
+                rounded-2xl border border-white/10
+                bg-white/5 backdrop-blur
+                px-6 py-8
+                shadow-[0_20px_60px_rgba(0,0,0,0.6)]
+                text-center space-y-4
+              "
             >
-              Add New Project <ArrowRight size={18} />
-            </button>
+              <p className="text-zinc-50 text-lg md:text-2xl">
+                Add your first project
+              </p>
+              <p className="text-sm text-zinc-400">
+                Create a project with a clear hypothesis so the LLM knows what to validate against.
+              </p>
+              <button
+                className="
+                  inline-flex items-center gap-2
+                  bg-teal-500 hover:bg-teal-400 text-white
+                  font-semibold py-2.5 px-6 rounded-xl
+                  shadow-[0_16px_40px_rgba(20,184,166,0.6)]
+                  transition text-sm
+                "
+                onClick={() => setModalOpen(true)}
+              >
+                Add New Project <ArrowRight size={16} />
+              </button>
+            </div>
           </div>
         ) : (
           <>
-            <div className="flex flex-col items-center w-full gap-8">
-              {projects.map((project) => {
-                const id = project.id ?? project.name; // fallback if no id yet
-                return (
-                  <div
-                    key={id}
-                    className="group relative w-[80%] max-w-6xl bg-[#181818] border border-white/10 rounded-xl p-6 flex flex-col gap-4 shadow-lg hover:shadow-violet-500/20 hover:border-violet-500 transition-colors"
-                  >
-                    <h3 className="text-white text-lg font-semibold truncate pr-8">{project.name}</h3>
-                    <p className="text-sm text-gray-400">{project.description}</p>
-                    <p className="text-sm text-gray-400">
-                      Created: {formatUtc(project.created_at ?? project.created)}
-                    </p>
-                    <span className="inline-block px-2 py-0.5 text-xs rounded bg-violet-600/20 text-violet-300 capitalize w-max">
-                      {project.status || "unknown"}
-                    </span>
+            <div className="w-full max-w-5xl flex flex-col gap-6">
+              <header className="flex items-center justify-between gap-3 mt-4 mb-1">
+                <div>
+                  <h1 className="text-xl md:text-2xl font-semibold text-zinc-50">
+                    Your projects
+                  </h1>
+                  <p className="text-sm text-zinc-400">
+                    Each project represents a problem or hypothesis you&apos;re validating.
+                  </p>
+                </div>
+                <button
+                  className="
+                    hidden sm:inline-flex items-center gap-2
+                    rounded-xl border border-white/10
+                    bg-white/5 px-3 py-2 text-xs
+                    text-zinc-100 hover:bg-white/10
+                    transition
+                  "
+                  onClick={() => setModalOpen(true)}
+                >
+                  New Project
+                  <ArrowRight size={14} />
+                </button>
+              </header>
 
-                    {/* Trash (top-right) */}
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleSoftDelete(project.id);
-                      }}
-                      disabled={deletingId === project.id}
-                      title="Archive project"
-                      aria-label="Archive project"
-                      className="absolute top-6 right-6 z-10 p-2 rounded-md text-violet-400 opacity-80
-                                hover:opacity-100 hover:text-red-400 hover:bg-red-500/10
-                                focus:outline-none focus:ring-2 focus:ring-red-400/40
-                                disabled:opacity-60 disabled:cursor-not-allowed transition"
+              <div className="flex flex-col items-center w-full gap-4">
+                {projects.map((project) => {
+                  const id = project.id ?? project.name; // fallback if no id yet
+                  return (
+                    <div
+                      key={id}
+                      className="
+                        group relative w-[min(1100px,100%)]
+                        bg-white/5
+                        border border-white/10
+                        rounded-2xl p-5
+                        flex flex-col gap-2.5
+                        shadow-[0_14px_40px_rgba(0,0,0,0.65)]
+                        hover:bg-white/10
+                        hover:border-teal-400/70
+                        transition
+                      "
                     >
-                      {deletingId === project.id ? (
-                        <span className="inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                      ) : (
-                        <Trash2 size={18} />
-                      )}
-                    </button>
+                      <h3 className="text-zinc-50 text-sm md:text-base font-semibold truncate pr-10">
+                        {project.name}
+                      </h3>
+                      <p className="text-xs md:text-sm text-zinc-300">
+                        {project.description}
+                      </p>
+                      <p className="text-[11px] md:text-xs text-zinc-400">
+                        Created: {formatUtc(project.created_at ?? project.created)}
+                      </p>
+                      <span className="inline-block px-2.5 py-0.5 text-[11px] rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-400/40 capitalize w-max">
+                        {project.status || "unknown"}
+                      </span>
 
-                    {/* Arrow (bottom-right) — green hover */}
-                    <Link
-                      to={`/projects/${encodeURIComponent(id)}`}
-                      onClick={(e) => e.stopPropagation()}
-                      title="Open project"
-                      aria-label={`Open project ${project.name}`}
-                      className="absolute bottom-6 right-6 z-10 p-2 rounded-md text-violet-400 opacity-80
-                                hover:opacity-100 hover:text-emerald-400 hover:bg-emerald-500/10
-                                focus:outline-none focus:ring-2 focus:ring-emerald-400/40
-                                transition"
-                    >
-                      <ArrowRight size={18} />
-                    </Link>
-                  </div>
-                );
-              })}
+                      {/* Trash (top-right) */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSoftDelete(project.id);
+                        }}
+                        disabled={deletingId === project.id}
+                        title="Archive project"
+                        aria-label="Archive project"
+                        className="
+                          absolute top-4 right-12 z-10 p-1.5 rounded-md
+                          text-zinc-500 hover:text-red-400
+                          hover:bg-red-500/10
+                          focus:outline-none focus:ring-2 focus:ring-red-500/40
+                          disabled:opacity-60 disabled:cursor-not-allowed
+                          transition
+                        "
+                      >
+                        {deletingId === project.id ? (
+                          <span className="inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"/>
+                        ) : (
+                          <Trash2 size={16} />
+                        )}
+                      </button>
+
+                      {/* Arrow (bottom-right) — green hover */}
+                      <Link
+                        to={`/projects/${encodeURIComponent(id)}`}
+                        onClick={(e) => e.stopPropagation()}
+                        title="Open project"
+                        aria-label={`Open project ${project.name}`}
+                        className="
+                          absolute bottom-4 right-4 z-10 p-1.5 rounded-md
+                          text-zinc-500 group-hover:text-teal-400
+                          hover:bg-teal-500/10
+                          focus:outline-none focus:ring-2 focus:ring-teal-500/40
+                          transition
+                        "
+                      >
+                        <ArrowRight size={18} />
+                      </Link>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Floating add-project button */}
             <button
-              className="fixed bottom-8 right-8 flex items-center gap-2 bg-yellow-300 hover:bg-yellow-200 text-black font-semibold py-3 px-6 rounded-full shadow-xl transition-colors"
+              className="
+                fixed bottom-8 right-8
+                inline-flex items-center gap-2
+                bg-teal-500 hover:bg-teal-400 text-white
+                font-semibold py-2.5 px-5 rounded-full
+                shadow-[0_16px_40px_rgba(20,184,166,0.7)]
+                transition text-sm
+                sm:hidden
+              "
               onClick={() => setModalOpen(true)}
             >
-              New Project <ArrowRight size={18} />
+              New Project <ArrowRight size={16} />
             </button>
           </>
         )}
@@ -204,31 +287,61 @@ export default function HomePage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
           <form
             onSubmit={handleProjectCreate}
-            className="bg-[#181818] w-11/12 max-w-md p-8 rounded-xl border border-white/10 flex flex-col gap-6"
+            className="
+              w-[min(520px,92vw)]
+              bg-zinc-950/95
+              rounded-2xl border border-white/10
+              shadow-[0_24px_70px_rgba(0,0,0,0.9)]
+              p-6 md:p-8
+              flex flex-col gap-5
+              text-white
+            "
           >
-            <h2 className="text-white text-xl font-semibold">Create a new project</h2>
+            <h2 className="text-zinc-50 text-xl font-semibold">Create a new project</h2>
+            <p className="text-xs text-zinc-400">
+              Start with a concrete problem or hypothesis you want to validate.
+            </p>
 
             <input
               type="text"
               value={projectName}
               onChange={(e) => setProjectName(e.target.value)}
               placeholder="Project name"
-              className="w-full p-3 rounded-md bg-[#222] text-white placeholder-gray-400 outline-none border border-transparent focus:border-violet-500"
+              className="
+                w-full p-3 rounded-xl
+                bg-black/40 border border-white/10
+                text-sm text-zinc-50 placeholder:text-zinc-500
+                outline-none
+                focus:border-teal-400 focus:ring-2 focus:ring-teal-500/40
+                transition
+              "
             />
 
             <textarea
               value={descriptionValue}
               onChange={(e) => setProjectDescription(e.target.value)}
               placeholder="IMPORTANT! Enter a short description or hypothesis to validate. This description will be used by the LLM to validate against."
-              className="w-full min-h-[120px] p-3 rounded-md bg-neutral-900 text-white placeholder:text-gray-400 border border-transparent outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 resize-y"
+              className="
+                w-full min-h-[120px] p-3 rounded-xl
+                bg-black/40 border border-white/10
+                text-sm text-zinc-50 placeholder:text-zinc-500
+                outline-none resize-y
+                focus:border-teal-400 focus:ring-2 focus:ring-teal-500/40
+                transition
+              "
             />
 
-            {!!error && <p className="text-red-400 text-sm">{error}</p>}
+            {!!error && <p className="text-red-400 text-xs">{error}</p>}
 
-            <div className="flex justify-end gap-4">
+            <div className="flex justify-end gap-3">
               <button
                 type="button"
-                className="px-4 py-2 text-sm rounded-md bg-gray-700 text-gray-200 hover:bg-gray-600"
+                className="
+                  px-4 py-2 text-sm rounded-xl
+                  bg-white/5 text-zinc-200
+                  hover:bg-white/10
+                  transition
+                "
                 onClick={() => {
                   setModalOpen(false);
                   setError("");
@@ -244,7 +357,15 @@ export default function HomePage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="relative flex items-center justify-center bg-yellow-300 hover:bg-yellow-200 text-black font-semibold py-2.5 px-5 rounded-lg disabled:opacity-70 disabled:cursor-not-allowed transition min-w-[120px] overflow-hidden"
+                className="
+                  relative flex items-center justify-center
+                  bg-teal-500 hover:bg-teal-400 text-white
+                  font-semibold py-2.5 px-5 rounded-xl
+                  disabled:opacity-70 disabled:cursor-not-allowed
+                  transition min-w-[120px] overflow-hidden
+                  shadow-[0_16px_40px_rgba(20,184,166,0.8)]
+                  text-sm
+                "
               >
                 {/* Spinner layer */}
                 <span
@@ -252,7 +373,7 @@ export default function HomePage() {
                     isSubmitting ? "opacity-100" : "opacity-0 pointer-events-none"
                   }`}
                 >
-                  <span className="inline-block w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></span>
+                  <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
                 </span>
 
                 {/* Text layer */}
